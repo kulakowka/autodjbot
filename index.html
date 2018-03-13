@@ -1,0 +1,56 @@
+<iframe id="sc-widget" src="https://w.soundcloud.com/player/?url=https://soundcloud.com/resident-advisor/ra614-sync-24" width="100%"
+  height="465" scrolling="no" frameborder="no"></iframe>
+
+<script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+  (function () {
+    var urls = []
+    var listened = new Set()
+
+    function fetchUrls() {
+      return fetch(document.location.href + '.json')
+        .then(res => res.json())
+        .then(newUrls => {
+          urls = newUrls
+          console.log('urls', urls)
+        })
+    }
+
+    function playNext() {
+      var unlistened = urls.filter(url => !listened.has(url))
+      var nextUrl = unlistened[0]
+
+      if (!unlistened.length) {
+        listened = new Set()
+        nextUrl = urls[0]
+      }
+
+      listened.add(nextUrl)
+
+      widget.load(nextUrl, {
+        auto_play: true,
+        visual: true
+      })
+    }
+
+
+    setInterval(fetchUrls, 5000)
+    fetchUrls()
+      .then(() => {
+        playNext()
+      })
+
+    var widgetIframe = document.getElementById('sc-widget');
+    var widget = SC.Widget(widgetIframe);
+
+    widget.bind(SC.Widget.Events.READY, function () {
+      console.log('READY')
+
+    });
+
+    widget.bind(SC.Widget.Events.FINISH, function () {
+      playNext()
+    });
+  }());
+</script>
